@@ -6,7 +6,7 @@ import websockets
 from fire import Fire
 from slacker import Slacker
 
-from Feynman.etc.util import Option, get_logger
+from Feynman.etc.util import Config, get_logger
 
 
 class base():
@@ -34,7 +34,7 @@ class base():
             try:
                 message_json = await ws.recv()
                 self.logger.info('get message...')
-                message_json = Option(message_json)
+                message_json = Config(message_json)
                 if message_json.text and message_json.subtype != 'bot_message':
                     if '안녕' in message_json.text and '봇' in message_json.text:
                         self.slack.chat.post_message(message_json.channel, '안녕하세요')
