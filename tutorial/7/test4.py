@@ -1,18 +1,19 @@
-# from collections import defaultdict
+import io
 import time
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload
 
 from Feynman.etc.util import get_logger
 from Feynman.serialize import Pickle_serializer
 
 
 class Google_drive():
-    def __init__(self, path):
+    def __init__(self):
         self.logger = get_logger()
         self._ps = Pickle_serializer()
-        self.creds = self._ps.load(path)
+        self.creds = self._ps.load('token.pickle')
         self.service = build('drive', 'v3', credentials=self.creds)
 
     def _get_list(self):
@@ -51,17 +52,27 @@ class Google_drive():
 
             name_list = [dic for dic in rlist if name in dic['name']]
             if len(name_list) > max_data - 1:
-                # del_id = min(tmp, key=lambda x: x['createdTime'])['id']
                 del_list = sorted(name_list, key=lambda x: x['createdTime'])[:-(max_data - 1)]
                 for dic in del_list:
                     self.service.files().delete(fileId=dic['id']).execute()
                     self.logger.info('Delete old file : {}({})/{}({})'.format(folder, folder_id, name, dic['id']))
                     time.sleep(.1)
 
+    def download(self, folder, path):
+        rlist = self._get_list()
+        folder_id = self._get_folder_id(folder, rlist)
 
-def main():
-    a = Google_drive('token.pickle')
-    print(a)
+        rlist = [dic for dic in rlist if folder_id in dic['parents']]
 
-if __name__ == '__main__':
-    main()
+        fname = {dic['name'] for dic in rlist}
+        for name in fname:
+            name_list = [dic for dic in rlist if name in dic['name']]
+            file_id = max(name_list, key=lambda x: x['createdTime'])['id']
+
+            request = self.service.files().get_media(fileId=file_id)
+            fh = io.FileIO('{}/{}/{}'.format(path, folder, name), 'wb')
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+            self.logger.info('Download file : {}/{}/{}({})'.format(path, folder, name, file_id))
