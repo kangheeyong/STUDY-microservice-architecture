@@ -1,4 +1,5 @@
 import io
+import os
 import time
 
 from googleapiclient.discovery import build
@@ -35,7 +36,7 @@ class Google_drive():
         else:
             return r[folder]['id']
 
-    def upload(self, folder, files, max_data=3):
+    def _upload(self, folder, files, max_data=3):
         rlist = self._get_list()
         folder_id = self._get_folder_id(folder, rlist)
 
@@ -58,7 +59,13 @@ class Google_drive():
                     self.logger.info('Delete old file : {}({})/{}({})'.format(folder, folder_id, name, dic['id']))
                     time.sleep(.1)
 
-    def download(self, folder, path):
+    def _download(self, folder, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        path = os.path.join(path, folder)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
         rlist = self._get_list()
         folder_id = self._get_folder_id(folder, rlist)
 
@@ -70,9 +77,9 @@ class Google_drive():
             file_id = max(name_list, key=lambda x: x['createdTime'])['id']
 
             request = self.service.files().get_media(fileId=file_id)
-            fh = io.FileIO('{}/{}/{}'.format(path, folder, name), 'wb')
+            fh = io.FileIO(os.path.join(path, name), 'wb')
             downloader = MediaIoBaseDownload(fh, request)
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-            self.logger.info('Download file : {}/{}/{}({})'.format(path, folder, name, file_id))
+            self.logger.info('Download file : {}({})'.format(os.path.join(path, name), file_id))
