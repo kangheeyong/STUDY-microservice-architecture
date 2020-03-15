@@ -1,6 +1,7 @@
 import io
 import os
 import time
+import socket
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -10,12 +11,21 @@ from Feynman.etc.util import get_logger
 from Feynman.serialize import Pickle_serializer
 
 
+# socket.setdefaulttimeout(30)
+
+
 class Google_drive():
     def __init__(self):
         self.logger = get_logger()
         self._ps = Pickle_serializer()
         self.creds = self._ps.load('token.pickle')
-        self.service = build('drive', 'v3', credentials=self.creds)
+
+        while True:
+            try:
+                self.service = build('drive', 'v3', credentials=self.creds)
+                break
+            except socket.timeout:
+                self.logger.info('Time-out... try restart...')
 
     def _get_list(self):
         result = self.service.files().list(fields='*').execute()['files']
@@ -59,6 +69,14 @@ class Google_drive():
                     self.logger.info('Delete old file : {}({})/{}({})'.format(folder, folder_id, name, dic['id']))
                     time.sleep(.1)
 
+    def upload(self, folder, files, max_data=3):
+        while True:
+            try:
+                self._upload(folder, files, max_data)
+                break
+            except socket.timeout:
+                self.logger.info('Time-out... try restart...')
+
     def _download(self, folder, path):
         if not os.path.exists(path):
             os.makedirs(path)
@@ -83,3 +101,21 @@ class Google_drive():
             while done is False:
                 status, done = downloader.next_chunk()
             self.logger.info('Download file : {}({})'.format(os.path.join(path, name), file_id))
+
+    def download(self, folder, path):
+        while True:
+            try:
+                self._download(folder, path)
+                break
+            except socket.timeout:
+                self.logger.info('Time-out... try restart...')
+
+
+if __name__ == '__main__':
+    a = Google_drive()
+    while True:
+        a.upload(folder='test',
+                 files={'test2.ps': '../../../test.ps',
+                        'token.pickle': '../../../token.pickle'},
+                 max_data=2)
+        time.sleep(5)

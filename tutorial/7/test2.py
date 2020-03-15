@@ -1,8 +1,6 @@
-import sys
 from googleapiclient.discovery import build
 
 from Feynman.serialize import Pickle_serializer
-from apiclient import errors
 
 
 _ps = Pickle_serializer()
@@ -14,12 +12,8 @@ def main():
     service = build('drive', 'v3', credentials=creds)
 
     # Call the Drive v3 API
-    try:
-        results = service.files().list(
+    results = service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
-    except errors.HttpError as err:
-        print(err)
-        sys.exit()
 
     items = results.get('files', [])
 
