@@ -1,4 +1,5 @@
 *.un~
 *.swp
+tmp
 token.pickle
 
