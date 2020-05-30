@@ -3,20 +3,19 @@ import cmd
 
 class my(cmd.Cmd):
     intro = " Hello "
-    prompt = " (mdp) "
+    prompt = "cmd > "
     file = None
 
     def do_hello(self, arg):
-        'print Hello~'
+        'prin Hello~'
         self.hello(arg)
 
     def do_name(self, arg):
-        'print name'
         self.name()
 
-    def do_job(self, arg):
-        'print job'
-        self.job()
+#    def do_job(self, arg):
+#        'prnt job'
+#        self.job()'
 
     def hello(self, arg):
         print('Hello~', arg)
