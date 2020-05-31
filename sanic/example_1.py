@@ -4,7 +4,6 @@ from sanic_openapi import swagger_blueprint
 from sanic_jwt import exceptions
 from sanic_jwt import initialize
 from sanic_jwt.decorators import protected
-from sanic_jwt.decorators import scoped
 
 
 class User:
