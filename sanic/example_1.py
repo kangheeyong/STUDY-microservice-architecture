@@ -16,7 +16,7 @@ class User:
     def __repr__(self):
         return "User(id='{}')".format(self.user_id)
 
-    def to_dir(self):
+    def to_dict(self):
         return {"user_id": self.user_id, "username": self.username}
 
 
@@ -39,10 +39,9 @@ async def authenticate(request, *args, **kwargs):
         raise exceptions.AuthenticationFailed("User not found")
     if password != user.password:
         raise exceptions.AuthenticationFailed("Password is incorrect")
-
     return user
 
-app = Sanic()
+app = Sanic(__name__)
 app.blueprint(swagger_blueprint)
 initialize(app, authenticate=authenticate)
 
@@ -50,7 +49,7 @@ initialize(app, authenticate=authenticate)
 @app.route("/")
 @protected()
 async def test(request):
-    return json({"hello": "worl"})
+    return json({"hello": "world"})
 
 
 if __name__ == '__main__':
